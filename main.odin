@@ -74,6 +74,14 @@ tokenize :: proc(line: string) -> [dynamic]Token {
 			value, ok := strconv.parse_int(line[i:j])
 			append(&tokenized, Token{.NUMBER, value})
 			i = j
+		} else if unicode.is_alpha(ch) {
+			j: int = i
+
+			for j < l {
+				j += 1
+			}
+
+			i = j
 		} else if unicode.is_white_space(ch) {
 			i += 1
 		} else {
@@ -107,19 +115,15 @@ evaluate_bolaga :: proc(stack: ^[dynamic]int, tokenList: [dynamic]Token) {
 				append(stack, a+b)
 				i += 1
 			case .SUB:
-				a := stack[len(stack)-1]
-				b := stack[len(stack)-2]
-				pop(stack)
-				pop(stack)
+				a := pop(stack)
+				b := pop(stack)
 				append(stack, a-b)
 				i += 1
 			case .PRINT_CHAR:
-				fmt.print(rune(stack[len(stack)-1]))
-				pop(stack)
+				fmt.print(rune(pop(stack)))
 				i += 1
 			case .PRINT_NUM:
-				fmt.print(stack[len(stack)-1])
-				pop(stack)
+				fmt.print(pop(stack))
 				i += 1
 			case .INPUT_STRING:
 				reader: bufio.Reader
@@ -191,6 +195,7 @@ evaluate_bolaga :: proc(stack: ^[dynamic]int, tokenList: [dynamic]Token) {
 					evaluate_bolaga(stack, loopInstructions)
 				}
 
+				delete(loopInstructions)
 				i = j
 			}
 			case .COMPARE:
@@ -223,7 +228,8 @@ evaluate_bolaga :: proc(stack: ^[dynamic]int, tokenList: [dynamic]Token) {
 				i += 1
 			}
 			case .END:
-				return
+				fmt.println(stack^)
+				os.exit(0)
 			case .CLEAR:
 				clear(stack)
 				i += 1
